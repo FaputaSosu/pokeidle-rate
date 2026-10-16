@@ -39,7 +39,7 @@
       <div class="pir-stat-item">
         <div class="pir-stat-info">
           <span>${stat.toUpperCase()} (IV ${info.iv}/32)</span>
-          <span style="color: ${info.pct >= 70 ? '#6fd08a' : info.pct >= 40 ? '#ffe9a8' : '#ffc9bd'};">${info.pct}%</span>
+          <span style="color: ${info.pct >= 75 ? '#6fd08a' : info.pct >= 45 ? '#ffe9a8' : '#ffc9bd'};">${info.pct}%</span>
         </div>
         <div class="pir-stat-bar">
           <div class="pir-stat-fill" style="width: ${info.pct}%;"></div>
@@ -68,18 +68,18 @@
       </div>
 
       <div class="pir-corpo">
-        <div class="pir-secao-tit">Veredito Mastigado da Build</div>
+        <div class="pir-secao-tit">Veredito Resumido da Build</div>
         <div class="pir-caixa">
           <div class="pir-veredito-box ${dados.veredito.classe}">
             <div class="pir-veredito-top">
               <span class="pir-veredito-status ${dados.veredito.classe}">${dados.veredito.titulo}</span>
-              <span style="font-weight: 700; color: #ffe9a8;">Eficiência Útil: ${dados.veredito.scoreUtil}%</span>
+              <span style="font-weight: 700; color: #ffe9a8;">Média Geral: ${dados.veredito.mediaGeral}%</span>
             </div>
             <div class="pir-veredito-desc" style="margin-top:6px;">${dados.veredito.explicacao}</div>
           </div>
         </div>
 
-        <div class="pir-secao-tit">Eficiência dos Status (Roll vs Teto Perfeito P5 / Q1.80 / IV32)</div>
+        <div class="pir-secao-tit">Eficiência dos Status (Roll Puro vs Teto IV32)</div>
         <div class="pir-caixa">
           <div class="pir-grid-stats">
             ${statsHTML}
@@ -126,16 +126,42 @@
       const nomePokemon = nomeElemento.innerText.trim();
       const nivel = parseInt(nivelElemento?.innerText.replace(/\D/g, '') || '100', 10);
 
-      const { especies, mod } = await PIH.carregarJogo();
-
-      let especieAlvo = null;
-      for (const [id, esp] of especies.entries()) {
-        if (esp.name && nomePokemon.toLowerCase().includes(esp.name.toLowerCase())) {
-          especieAlvo = esp;
+      let especieTexto = '';
+      const elementosEsp = document.querySelectorAll('*');
+      for (const el of elementosEsp) {
+        if (el.children.length === 0 && el.innerText && el.innerText.includes('Espécie:')) {
+          especieTexto = el.innerText.replace('Espécie:', '').trim();
           break;
         }
       }
-      if (!especieAlvo) return;
+
+      const { especies, mod } = await PIH.carregarJogo();
+
+      let especieAlvo = null;
+
+      if (especieTexto) {
+        for (const [id, esp] of especies.entries()) {
+          if (esp.name && esp.name.toLowerCase() === especieTexto.toLowerCase()) {
+            especieAlvo = esp;
+            break;
+          }
+        }
+      }
+
+      if (!especieAlvo) {
+        const nomeLimpo = nomePokemon.replace(/^(Shiny|Furious|Ancient|Psy|War|Brave)\s+/i, '').trim();
+        for (const [id, esp] of especies.entries()) {
+          if (esp.name && nomeLimpo.toLowerCase().includes(esp.name.toLowerCase())) {
+            especieAlvo = esp;
+            break;
+          }
+        }
+      }
+
+      if (!especieAlvo) {
+        alert('Não foi possível identificar a espécie do Pokémon.');
+        return;
+      }
 
       const potenciaEl = document.querySelector('.fi-placa.pk-selo-pot b');
       const potencia = potenciaEl ? potenciaEl.innerText.trim() : 'P1';
@@ -144,7 +170,10 @@
       const qualidadeTexto = qualidadeEl ? qualidadeEl.innerText.trim().replace(',', '.') : '1.000';
       const qualidade = parseFloat(qualidadeTexto) || 1.000;
 
-      const isShiny = document.body.innerText.includes('Shiny') || document.querySelector('.pk-shiny') !== null;
+      const temTagShiny = Array.from(document.querySelectorAll('.pk-tag, .fi-tag, .pk-shiny, .fi-placa')).some(
+        el => el.innerText && el.innerText.trim().toUpperCase() === 'SHINY'
+      );
+      const isShiny = temTagShiny || nomePokemon.toLowerCase().startsWith('shiny ');
 
       const lerIv = (nomeStat) => {
         for (const card of document.querySelectorAll('.fi-stat')) {
@@ -165,22 +194,32 @@
         speed: lerIv('SPD')
       };
 
+      const parseStatNum = (el) => {
+        if (!el) return 100;
+        const limpo = el.innerText.replace(/\./g, '').replace(/\D/g, '');
+        return parseInt(limpo, 10) || 100;
+      };
+
+      const statEls = document.querySelectorAll('.fi-stat-num');
       const stats = {
-        hp: parseInt(document.querySelectorAll('.fi-stat-num')[0]?.innerText || 100, 10),
-        atk: parseInt(document.querySelectorAll('.fi-stat-num')[1]?.innerText || 100, 10),
-        def: parseInt(document.querySelectorAll('.fi-stat-num')[2]?.innerText || 100, 10),
-        spAtk: parseInt(document.querySelectorAll('.fi-stat-num')[3]?.innerText || 100, 10),
-        spDef: parseInt(document.querySelectorAll('.fi-stat-num')[4]?.innerText || 100, 10),
-        speed: parseInt(document.querySelectorAll('.fi-stat-num')[5]?.innerText || 100, 10)
+        hp: parseStatNum(statEls[0]),
+        atk: parseStatNum(statEls[1]),
+        def: parseStatNum(statEls[2]),
+        spAtk: parseStatNum(statEls[3]),
+        spDef: parseStatNum(statEls[4]),
+        speed: parseStatNum(statEls[5])
       };
 
       const eficienciaStats = {};
-      const fatorQualidade = Math.min(1, qualidade / 1.80);
-
+      let somaPcts = 0;
       for (const [k, ivVal] of Object.entries(ivs)) {
-        let pct = Math.round((ivVal / 32) * fatorQualidade * 100);
+        let pct = Math.round((ivVal / 32) * 100);
         eficienciaStats[k] = { iv: ivVal, pct: Math.min(100, Math.max(5, pct)) };
+        somaPcts += pct;
       }
+      
+      // Média geral real de todos os 6 stats combinados
+      const mediaGeral = Math.round(somaPcts / 6);
 
       const tipos = [especieAlvo.type1, especieAlvo.type2].filter(Boolean);
 
@@ -221,56 +260,40 @@
         };
       });
 
-      // ---- LÓGICA DO VEREDITO ANATOMIZADO E MASTIGADO ----
       const ehFocoEspecial = especiais >= fisicos;
       const statChaveNome = ehFocoEspecial ? 'SP.ATK' : 'ATK';
       const pctStatChave = ehFocoEspecial ? eficienciaStats.spAtk.pct : eficienciaStats.atk.pct;
       const ivStatChave = ehFocoEspecial ? ivs.spAtk : ivs.atk;
       const pctLadoOposto = ehFocoEspecial ? eficienciaStats.atk.pct : eficienciaStats.spAtk.pct;
 
-      // Média dos status defensivos (HP + DEF + SPDEF)
-      const mediaDefensiva = Math.round((eficienciaStats.hp.pct + eficienciaStats.def.pct + eficienciaStats.spDef.pct) / 3);
-
       let veredito = {
         titulo: 'Bom',
         classe: 'bom',
-        scoreUtil: Math.round(pctStatChave * 0.75 + eficienciaStats.speed.pct * 0.25),
+        mediaGeral: mediaGeral,
         explicacao: ''
       };
 
-      // Cenário 1: "Atacante Perfeito" (O status ofensivo que importa veio alto)
       if (pctStatChave >= 75) {
-        if (mediaDefensiva < 45) {
-          veredito.titulo = '⚡ Glass Cannon — Bate Muito / Levemente Papel';
-          veredito.classe = 'excelente';
-          veredito.explicacao = `<b>MUITO BOM PARA FARM/DANO!</b> As habilidades do kit usam <b>Dano ${ehFocoEspecial ? 'Especial' : 'Físico'}</b>, e o seu <b>${statChaveNome} (IV ${ivStatChave}/32 - ${pctStatChave}%)</b> veio Excelente! A nota geral do jogo pode cair por conta das defesas/HP baixos, mas para o que interessa (causar dano nas hunts), ele vai bater o máximo do potencial da espécie!`;
-        } else {
-          veredito.titulo = '🟢 Excelente — Vale Muito a Pena Upar!';
-          veredito.classe = 'excelente';
-          veredito.explicacao = `<b>PERFEITO!</b> O kit foca em dano <b>${ehFocoEspecial ? 'Especial' : 'Físico'}</b> e o <b>${statChaveNome} (IV ${ivStatChave}/32 - ${pctStatChave}%)</b> acompanhou em alto nível, junto com boa sustentação defensiva. Build muito redonda!`;
-        }
-      } 
-      // Cenário 2: Status Ofensivo Mediano
-      else if (pctStatChave >= 50) {
-        veredito.titulo = '🟡 Usável / Mediano — Desempenho Justo';
+        veredito.titulo = '🟢 Bom — Vale a Pena Investir';
+        veredito.classe = 'excelente';
+        veredito.explicacao = `<b>Ótimo nascimento!</b> O <b>${statChaveNome}</b> veio alto (IV ${ivStatChave}/32 - ${pctStatChave}%), garantindo o dano máximo esperado para as habilidades desta espécie.`;
+      } else if (pctStatChave >= 50) {
+        veredito.titulo = '🟡 Usável — Quebra Galho';
         veredito.classe = 'bom';
-        veredito.explicacao = `O kit é <b>${ehFocoEspecial ? 'Especial' : 'Físico'}</b> (${ehFocoEspecial ? especiais : fisicos} golpes), e o seu <b>${statChaveNome} (IV ${ivStatChave}/32 - ${pctStatChave}%)</b> é mediano. Ele não vai bater o topo da espécie, mas é totalmente funcional para hunts normais e uso do dia a dia.`;
-      } 
-      // Cenário 3: Status Ofensivo Baixo (Trolado no lado do Ataque)
-      else if (pctStatChave < 50 && pctLadoOposto >= 65) {
-        veredito.titulo = '⚠️ Status Invertido — O Jogo Trolou no Ataque!';
+        veredito.explicacao = `<b>Desempenho medianamente aceitável.</b> O <b>${statChaveNome} (${pctStatChave}%)</b> funciona para o dia a dia, mas não é um nascimento de elite.`;
+      } else if (pctStatChave < 45 && pctLadoOposto >= 65) {
+        veredito.titulo = '⚠️ O Jogo Trolou (Status Invertido)';
         veredito.classe = 'subotimo';
-        veredito.explicacao = `<b>ATENÇÃO:</b> As habilidades principais deste Pokémon exigem <b>${statChaveNome}</b> (que veio ruim: IV ${ivStatChave}/32 - ${pctStatChave}%), porém o status do lado oposto veio alto (${pctLadoOposto}%). Como as habilidades não aproveitam esse status oposto, o dano real dele nas habilidades será bem abaixo do esperado!`;
-      } 
-      // Cenário 4: Fraco Geral
-      else {
-        veredito.titulo = '🔴 Fraco — Não Vale o Investimento';
+        veredito.explicacao = `<b>Ataque no lado errado!</b> O kit principal de golpes exige <b>${statChaveNome}</b> (que veio fraco: ${pctStatChave}%), mas o jogo jogou o status alto para o lado oposto. O dano real será limitado.`;
+      } else {
+        veredito.titulo = '🔴 Ruim — Não Vale a Pena';
         veredito.classe = 'ruim';
-        veredito.explicacao = `O status ofensivo principal <b>${statChaveNome} (IV ${ivStatChave}/32 - ${pctStatChave}%)</b> veio muito baixo. O dano das habilidades ficará comprometido e não compensa gastar pedras/recursos de refino neste nascimento.`;
+        veredito.explicacao = `<b>Ataque muito baixo.</b> O <b>${statChaveNome} (${pctStatChave}%)</b> veio fraco, comprometendo o potencial de dano das habilidades.`;
       }
 
       mostrarModalResumo({
         nome: nomePokemon,
+        especieNome: especieAlvo.name,
         nivel: nivel,
         potencia: potencia,
         qualidade: qualidade.toFixed(3),
