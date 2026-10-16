@@ -133,11 +133,25 @@
     const ofensivo = dados.perfilOfensivo;
     const defensivo = dados.perfilDefensivo;
 
+    let corNota = '#f59e0b';
+    let corTextoNota = '#15131a';
+    if (dados.veredito.classe === 'otima') { corNota = '#c084fc'; }
+    else if (dados.veredito.classe === 'mediano') { corNota = '#38bdf8'; }
+    else if (dados.veredito.classe === 'ruim') { corNota = '#4ade80'; }
+    else if (dados.veredito.classe === 'horrivel') { corNota = '#94a3b8'; }
+
     painel.innerHTML = `
       <div class="pir-cab">
-        <div class="pir-titulo">
+        <div class="pir-titulo" style="display: flex; flex-direction: column; gap: 4px; padding-right: 12px;">
           <h3>/rate — Visão Geral & Eficiência</h3>
-          <small>${dados.nome} (Nv ${dados.nivel}) | Tipos: <b>${dados.tipos.join(' / ')}</b> | Potência: <b>${dados.potencia}</b> | Qualidade: <b>${dados.qualidade}</b></small>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">
+            <small style="color: #f5cdb9; font-size: 11.5px; font-weight: 600;">
+              ${dados.nome} (Nv ${dados.nivel}) | Tipos: <b>${dados.tipos.join(' / ')}</b> | Potência: <b>${dados.potencia}</b> | Qualidade: <b>${dados.qualidade}</b>
+            </small>
+            <span style="background: ${corNota}; color: ${corTextoNota}; padding: 2px 8px; border-radius: 4px; font-weight: 900; font-size: 11px; box-shadow: 0 1px 4px rgba(0,0,0,0.5); white-space: nowrap;">
+              NOTA GERAL: ${dados.veredito.tituloNota} (${dados.veredito.notaReal}%)
+            </span>
+          </div>
         </div>
         <button class="pir-fechar" id="pir-btn-fechar">×</button>
       </div>
@@ -146,11 +160,30 @@
         <div class="pir-secao-tit">Veredito Resumido da Build</div>
         <div class="pir-caixa">
           <div class="pir-veredito-box ${dados.veredito.classe}">
-            <div class="pir-veredito-top">
-              <span class="pir-veredito-status ${dados.veredito.classe}">${dados.veredito.titulo}</span>
-              <span style="font-weight: 700; color: #ffe9a8;">Nota Geral: ${dados.veredito.notaReal}%</span>
+            <div style="font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #ffe9a8;">
+              ${dados.veredito.resumoCabecalho}
             </div>
-            <div class="pir-veredito-desc" style="margin-top:6px;">${dados.veredito.explicacao}</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.25); padding: 8px; border-radius: 6px;">
+              <div>
+                <div style="font-size: 11px; font-weight: 800; color: #ffe9a8; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; display: flex; justify-content: space-between;">
+                  <span>EFICIÊNCIA DE ATAQUE</span>
+                  <span>${dados.veredito.eficienciaAtaque}%</span>
+                </div>
+                <div style="font-size: 11.5px; color: #fff6ef; line-height: 1.35;">
+                  ${dados.veredito.analiseOfensiva}
+                </div>
+              </div>
+
+              <div>
+                <div style="font-size: 11px; font-weight: 800; color: #6fd08a; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; display: flex; justify-content: space-between;">
+                  <span>EFICIÊNCIA DE DEFESA</span>
+                  <span>${dados.veredito.eficienciaDefesa}%</span>
+                </div>
+                <div style="font-size: 11.5px; color: #fff6ef; line-height: 1.35;">
+                  ${dados.veredito.analiseDefensiva}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -402,8 +435,7 @@
         eficienciaStats[k] = { iv: ivVal, pct: Math.min(100, Math.max(5, pct)) };
         somaPcts += pct;
       }
-      
-      const mediaIvs = somaPcts / 6;
+
       const speedIv = ivs.speed;
       const speedPct = eficienciaStats.speed.pct;
       const reducaoCdPct = Number(((speedIv / 32) * 7).toFixed(1));
@@ -426,12 +458,22 @@
       const baseAtkEspecie = especieAlvo.atk || 100;
       const baseSpAtkEspecie = especieAlvo.spAtk || 100;
 
+      let poderFisicoTotal = 0;
+      let poderEspecialTotal = 0;
       let fisicos = 0, especiais = 0;
+
       const golpesAnalise = golpes.map(g => {
         const ehFisico = g.category !== 'SPECIAL';
-        if (ehFisico) fisicos++; else especiais++;
-
         const power = Math.max(15, g.power || 30);
+
+        if (ehFisico) {
+          fisicos++;
+          poderFisicoTotal += power;
+        } else {
+          especiais++;
+          poderEspecialTotal += power;
+        }
+
         const ativAtk = ehFisico ? stats.atk : stats.spAtk;
         const baseStatEspecie = ehFisico ? baseAtkEspecie : baseSpAtkEspecie;
 
@@ -464,49 +506,114 @@
 
       const speedData = { iv: speedIv };
 
-      const ehFocoEspecial = especiais >= fisicos;
-      const statChaveNome = ehFocoEspecial ? 'SP.ATK' : 'ATK';
-      const pctStatChave = ehFocoEspecial ? eficienciaStats.spAtk.pct : eficienciaStats.atk.pct;
-      const ivStatChave = ehFocoEspecial ? ivs.spAtk : ivs.atk;
-      const pctLadoOposto = ehFocoEspecial ? eficienciaStats.atk.pct : eficienciaStats.spAtk.pct;
+      const poderGeral = Math.max(1, poderFisicoTotal + poderEspecialTotal);
+      const pesoFisico = poderFisicoTotal / poderGeral;
+      const pesoEspecial = poderEspecialTotal / poderGeral;
+
+      const pctAtk = eficienciaStats.atk.pct;
+      const pctSpAtk = eficienciaStats.spAtk.pct;
+
+      let eficienciaOfensivaStats = 0;
+      let ehHibridoSignificativo = (pesoFisico >= 0.25 && pesoEspecial >= 0.25);
+
+      if (ehHibridoSignificativo) {
+        eficienciaOfensivaStats = Math.round((pctAtk * pesoFisico) + (pctSpAtk * pesoEspecial));
+      } else if (pesoFisico > pesoEspecial) {
+        eficienciaOfensivaStats = pctAtk;
+      } else {
+        eficienciaOfensivaStats = pctSpAtk;
+      }
+
+      const eficienciaAtaque = Math.round((eficienciaOfensivaStats * 0.70) + (speedPct * 0.30));
+
+      const hpPct = eficienciaStats.hp.pct;
+      const defPct = eficienciaStats.def.pct;
+      const spDefPct = eficienciaStats.spDef.pct;
+
+      let menorDef = Math.min(defPct, spDefPct);
+      let pesoDefensaBase = (hpPct * 0.30) + (defPct * 0.35) + (spDefPct * 0.35);
+      
+      if (menorDef < 35) {
+        pesoDefensaBase = pesoDefensaBase * 0.85;
+      }
+
+      const eficienciaDefesa = Math.round(pesoDefensaBase);
 
       const qualidadePct = Math.min(100, Math.max(0, ((qualidade - 1.0) / 0.8) * 100));
       const potenciaPct = (numPotencia / 5) * 100;
       const baseEstrutural = (qualidadePct * 0.6) + (potenciaPct * 0.4);
 
-      const notaReal = Math.round((pctStatChave * 0.45) + (baseEstrutural * 0.30) + (mediaIvs * 0.15) + (speedPct * 0.10));
+      const notaReal = Math.round((eficienciaAtaque * 0.50) + (eficienciaDefesa * 0.30) + (baseEstrutural * 0.20));
+
+      let analiseOfensiva = '';
+      let analiseDefensiva = '';
+
+      // ANÁLISE RIGOROSA E CRUZADA DE ATAQUE (Stat Principal + Speed)
+      const principalFisico = pesoFisico >= pesoEspecial;
+      const statChave = principalFisico ? 'ATK' : 'SP.ATK';
+      const pctChave = principalFisico ? pctAtk : pctSpAtk;
+      const ivChave = principalFisico ? ivs.atk : ivs.spAtk;
+
+      const statForte = pctChave >= 75;
+      const speedForte = speedPct >= 75;
+
+      if (statForte && speedForte) {
+        analiseOfensiva = `<b>${statChave} (${pctChave}%)</b> e Velocidade otimizada <b>(${speedPct}%)</b>: Dano bruto elevado com excelente agilidade e cooldowns rápidos.`;
+      } else if (statForte && !speedForte) {
+        analiseOfensiva = `<b>${statChave} (${pctChave}%)</b> em alto nível, porém penalizado por <span style="color: #ffc9bd; font-weight: 700;">⚠️ Speed Baixa (${speedPct}%)</span>: golpes causam dano forte mas demoram mais para recarregar.`;
+      } else if (!statForte && speedForte) {
+        analiseOfensiva = `<span style="color: #ff6464; font-weight: 700;">⚠️ Dano Reduzido (${statChave} ${pctChave}%):</span> O stat principal está baixo e limita o poder de fogo, mas conta com <span style="color: #6fd08a; font-weight: 700;">✨ Velocidade Excelente (${speedPct}%)</span> para agilizar a rotação (a agilidade ajuda na frequência, mas não substitui a falta de força bruta).`;
+      } else {
+        analiseOfensiva = `<span style="color: #ff6464; font-weight: 700;">⚠️ Dano Reduzido (${statChave} ${pctChave}%)</span> aliado a <span style="color: #ffc9bd; font-weight: 700;">⚠️ SPEED Baixa (${speedPct}%)</span>: Potencial ofensivo severamente comprometido em força e cadência.`;
+      }
+
+      // ANÁLISE CRUZADA DE DEFESA (HP, DEF e SP.DEF)
+      const defForte = defPct >= 75;
+      const spDefForte = spDefPct >= 75;
+
+      if (defForte && spDefForte) {
+        analiseDefensiva = `Blindagem completa (<b>HP ${hpPct}% / DEF ${defPct}% / SP.DEF ${spDefPct}%</b>). Excelente sustentabilidade contra qualquer tipo de dano.`;
+      } else if (defForte && !spDefForte) {
+        analiseDefensiva = `Boa defesa física (<b>DEF ${defPct}%</b>), mas com <span style="color: #ffc9bd; font-weight: 700;">⚠️ SP.DEF Crítica (${spDefPct}%)</span>: alta vulnerabilidade a ataques especiais.`;
+      } else if (!defForte && spDefForte) {
+        analiseDefensiva = `Boa defesa especial (<b>SP.DEF ${spDefPct}%</b>), mas com <span style="color: #ffc9bd; font-weight: 700;">⚠️ DEF Crítica (${defPct}%)</span>: alta vulnerabilidade a ataques físicos.`;
+      } else if (defPct < 35 && spDefPct < 35) {
+        analiseDefensiva = `<span style="color: #ff6464; font-weight: 700;">⚠️ Defesas Críticas (DEF ${defPct}% / SP.DEF ${spDefPct}%):</span> Papel puro! Dano massivo sofrido de qualquer fonte.`;
+      } else {
+        analiseDefensiva = `Sustentabilidade mediana (<b>HP ${hpPct}% / DEF ${defPct}% / SP.DEF ${spDefPct}%</b>). Absorção de dano moderada.`;
+      }
 
       let veredito = {
-        titulo: 'Bom',
-        classe: 'bom',
+        tituloNota: 'MEDIANO',
+        classe: 'mediano',
         notaReal: notaReal,
-        explicacao: ''
+        eficienciaAtaque: eficienciaAtaque,
+        eficienciaDefesa: eficienciaDefesa,
+        analiseOfensiva: analiseOfensiva,
+        analiseDefensiva: analiseDefensiva,
+        resumoCabecalho: ''
       };
 
-      if (pctStatChave >= 85 && speedPct >= 75 && baseEstrutural >= 60) {
-        veredito.titulo = '🟢 Excelente — Sinergia Perfeita';
+      if (notaReal >= 80) {
+        veredito.tituloNota = 'EXCELENTE';
         veredito.classe = 'excelente';
-        veredito.explicacao = `<b>Nascimento de elite absoluta!</b> O <b>${statChaveNome}</b> atingiu patamar elevado (IV ${ivStatChave}/32 - ${pctStatChave}%) alinhado a uma <b>Velocidade expressiva (${speedPct}%)</b>, garantindo excelente rendimento de dano e otimização nos tempos de recarga das habilidades.`;
-      } else if (pctStatChave >= 75 && speedPct < 40) {
-        veredito.titulo = '🟡 Usável — Ótimo Ataque com Velocidade Defasada';
-        veredito.classe = 'bom';
-        veredito.explicacao = `<b>Bom rendimento ofensivo (${statChaveNome} a ${pctStatChave}%), porém limitado pela Velocidade baixa (${speedPct}%).</b> O potencial de dano é sólido, mas os tempos de recarga das habilidades sofrem penalidade devido à lentidão do espécime.`;
-      } else if (pctStatChave >= 75 && baseEstrutural < 40) {
-        veredito.titulo = '🟡 Usável — IV Alto com Estrutura Limitada';
-        veredito.classe = 'bom';
-        veredito.explicacao = `<b>Desempenho viável pelo roll de ataque (${statChaveNome} a ${pctStatChave}%), porém restrito pela base estrutural (${potenciaTexto} / Q${qualidade}).</b> Apresenta entrega adequada devido ao IV máximo, mas com teto global reduzido.`;
-      } else if (pctStatChave >= 50) {
-        veredito.titulo = '🟡 Usável — Aceitável';
-        veredito.classe = 'bom';
-        veredito.explicacao = `<b>Desempenho intermediário.</b> O <b>${statChaveNome} (${pctStatChave}%)</b> atende aos requisitos básicos de combate, com a Velocidade em ${speedPct}% impactando o intervalo de ativação das habilidades.`;
-      } else if (pctStatChave < 45 && pctLadoOposto >= 65) {
-        veredito.titulo = '⚠️ Status Invertido';
-        veredito.classe = 'subotimo';
-        veredito.explicacao = `<b>Divergência de atributos.</b> O conjunto de habilidades exige <b>${statChaveNome}</b> (atualmente em ${pctStatChave}%), mas o valor mais alto foi alocado no atributo oposto. O dano efetivo sofrerá restrições.`;
-      } else {
-        veredito.titulo = '🔴 Ruim — Não Recomendado';
+        veredito.resumoCabecalho = 'Alta eficiência com excelente sinergia de ataque e defensiva.';
+      } else if (notaReal >= 65) {
+        veredito.tituloNota = 'ÓTIMA';
+        veredito.classe = 'otima';
+        veredito.resumoCabecalho = 'Ótimo desempenho geral, com alta consistência e excelente entrega em combate.';
+      } else if (notaReal >= 45) {
+        veredito.tituloNota = 'MEDIANO';
+        veredito.classe = 'mediano';
+        veredito.resumoCabecalho = 'Desempenho equilibrado. Atende aos requisitos operacionais sem grandes destaques.';
+      } else if (notaReal >= 30) {
+        veredito.tituloNota = 'RUIM';
         veredito.classe = 'ruim';
-        veredito.explicacao = `<b>Atributo de ataque insuficiente.</b> O <b>${statChaveNome} (${pctStatChave}%)</b> veio abaixo do ideal, comprometendo o rendimento ofensivo das habilidades.`;
+        veredito.resumoCabecalho = 'Descompensação relevante em defesas ou atributo de ataque principal.';
+      } else {
+        veredito.tituloNota = 'HORRÍVEL';
+        veredito.classe = 'horrivel';
+        veredito.resumoCabecalho = 'Atributos defensivos e de dano totalmente comprometidos.';
       }
 
       mostrarModalResumo({
