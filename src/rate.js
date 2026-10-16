@@ -1,7 +1,6 @@
 (function (root) {
   'use strict';
 
-  // Matriz de Efetividade de Tipos Clássica (Atacante -> Defensor)
   const TABELA_TIPOS = {
     NORMAL: { ROCK: 0.5, GHOST: 0, STEEL: 0.5 },
     FIRE: { FIRE: 0.5, WATER: 0.5, GRASS: 2, ICE: 2, BUG: 2, ROCK: 0.5, DRAGON: 0.5, STEEL: 2 },
@@ -85,7 +84,7 @@
     btn.id = 'btn-rate-poke';
     btn.type = 'button';
     btn.className = 'pir-btn-rate';
-    btn.innerHTML = `<span class="pir-tag">/rate</span> Analisar Status`;
+    btn.innerHTML = '<span class="pir-tag">/rate</span> Analisar Status';
 
     btn.onclick = (e) => {
       e.preventDefault();
@@ -122,7 +121,6 @@
       </div>
     `).join('');
 
-    // Aplicando a classe oficial .tipo \${item.tipo} para estilizar igualzinho às habilidades
     const renderPilulas = (lista) => {
       if (!lista.length) return '<span style="color: #777; font-size: 11px;">Nenhum</span>';
       return lista.map(item => `
@@ -134,9 +132,6 @@
 
     const ofensivo = dados.perfilOfensivo;
     const defensivo = dados.perfilDefensivo;
-
-    const optionsTiposHTML = `<option value="" selected>-- Nenhum (Dano Padrão) --</option>` + 
-      TODOS_TIPOS.map(tp => `<option value="${tp}">${tp}</option>`).join('');
 
     painel.innerHTML = `
       <div class="pir-cab">
@@ -169,9 +164,7 @@
           </div>
           <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; font-size: 11px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px;">
             <div>
-              <div style="font-weight: 700; color: #6fd08a; margin-bottom: 3px;">Ataques (O que esta espécie tem vantagem)
-
-</div>
+              <div style="font-weight: 700; color: #6fd08a; margin-bottom: 3px;">Ataques (O que esta espécie tem vantagem)</div>
               <div style="margin-bottom: 6px; line-height: 1.5;">${renderPilulas(ofensivo.eficientes)}</div>
               
               <div style="font-weight: 700; color: #ffc9bd; margin-bottom: 3px;">Defesas (O que resistem a esta espécie)</div>
@@ -185,11 +178,18 @@
 
         <div class="pir-secao-tit" style="display: flex; justify-content: space-between; align-items: center;">
           <span>Simulador de Dano Elemental por Alvo</span>
-          <div style="font-size: 12px; font-weight: normal;">
-            <label for="pir-select-alvo">Alvo Defensor:</label>
-            <select id="pir-select-alvo" style="background: #222; color: #fff; border: 1px solid #444; padding: 4px 10px; border-radius: 4px; margin-left: 6px; font-size: 12px;">
-              ${optionsTiposHTML}
-            </select>
+          <div style="font-size: 12px; font-weight: normal; display: flex; align-items: center; gap: 6px;">
+            <label for="pir-dropdown-alvo">Alvo Defensor:</label>
+            <div id="pir-dropdown-container" style="position: relative; display: inline-block;">
+              <button id="pir-dropdown-btn" type="button" style="background: #33202b; color: #fff6ef; border: 1px solid #480e1e; padding: 4px 10px; border-radius: 4px; font-size: 11.5px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                <span id="pir-dropdown-selecionado">-- SEM ALVO --</span>
+                <span style="font-size: 9px; color: #f5cdb9;">▼</span>
+              </button>
+              <div id="pir-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: #2a1922; border: 1px solid #480e1e; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.8); z-index: 999999; padding: 6px; width: 220px; max-height: 220px; overflow-y: auto;">
+                <div class="pir-opcao-tipo" data-valor="" style="padding: 5px 8px; cursor: pointer; border-radius: 4px; font-size: 11px; color: #ccc; margin-bottom: 4px; font-weight: 600; border: 1px solid #480e1e; background: #33202b; text-align: center;">-- SEM ALVO --</div>
+                <div id="pir-lista-tipos-custom" style="display: flex; flex-wrap: wrap; gap: 4px;"></div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="pir-caixa pir-tabela-wrap">
@@ -216,7 +216,44 @@
     document.body.appendChild(painel);
     document.querySelector('#pir-btn-fechar').onclick = fecharPainel;
 
-    const selectAlvo = document.getElementById('pir-select-alvo');
+    let tipoAlvoAtual = '';
+    const btnDropdown = document.getElementById('pir-dropdown-btn');
+    const menuDropdown = document.getElementById('pir-dropdown-menu');
+    const spanSelecionado = document.getElementById('pir-dropdown-selecionado');
+    const listaTiposCustom = document.getElementById('pir-lista-tipos-custom');
+
+    listaTiposCustom.innerHTML = TODOS_TIPOS.map(tp => `
+      <div class="pir-opcao-tipo" data-valor="${tp}" style="cursor: pointer; display: inline-block;">
+        <span class="tipo ${tp}" style="font-size: 10px; padding: 3px 8px; display: inline-block; font-weight: 600; border-radius: 4px;">${tp}</span>
+      </div>
+    `).join('');
+
+    btnDropdown.onclick = (e) => {
+      e.stopPropagation();
+      menuDropdown.style.display = menuDropdown.style.display === 'block' ? 'none' : 'block';
+    };
+
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('pir-dropdown-container')?.contains(e.target)) {
+        if (menuDropdown) menuDropdown.style.display = 'none';
+      }
+    });
+
+    menuDropdown.querySelectorAll('.pir-opcao-tipo').forEach(opcao => {
+      opcao.onclick = (e) => {
+        e.stopPropagation();
+        tipoAlvoAtual = opcao.getAttribute('data-valor');
+        
+        if (!tipoAlvoAtual) {
+          spanSelecionado.innerHTML = '-- SEM ALVO --';
+        } else {
+          spanSelecionado.innerHTML = `<span class="tipo ${tipoAlvoAtual}" style="font-size: 10px; padding: 2px 6px; font-weight: 600; border-radius: 3px;">${tipoAlvoAtual}</span>`;
+        }
+
+        menuDropdown.style.display = 'none';
+        atualizarTabelaGolpes(tipoAlvoAtual);
+      };
+    });
 
     function atualizarTabelaGolpes(tipoAlvo) {
       const tbody = document.getElementById('pir-tbody-golpes');
@@ -254,10 +291,6 @@
         `;
       }).join('');
     }
-
-    selectAlvo.onchange = (e) => {
-      atualizarTabelaGolpes(e.target.value);
-    };
 
     atualizarTabelaGolpes('');
   }
