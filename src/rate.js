@@ -266,12 +266,10 @@
       const ivStatChave = ehFocoEspecial ? ivs.spAtk : ivs.atk;
       const pctLadoOposto = ehFocoEspecial ? eficienciaStats.atk.pct : eficienciaStats.spAtk.pct;
 
-      // Ponderação estrutural baseada na fórmula oficial (Qualidade + Potência + IV do Ataque Util)
       const qualidadePct = Math.min(100, Math.max(0, ((qualidade - 1.0) / 0.8) * 100));
       const potenciaPct = (numPotencia / 5) * 100;
       const baseEstrutural = (qualidadePct * 0.6) + (potenciaPct * 0.4);
 
-      // Nota real cruzando o stat útil com a carcaça estrutural e a média geral dos IVs
       const notaReal = Math.round((pctStatChave * 0.5) + (baseEstrutural * 0.3) + (mediaIvs * 0.2));
 
       let veredito = {
@@ -282,25 +280,25 @@
       };
 
       if (pctStatChave >= 85 && baseEstrutural >= 60) {
-        veredito.titulo = '🟢 Bom — Vale a Pena Investir';
+        veredito.titulo = '🟢 Bom — Recomendado para Investimento';
         veredito.classe = 'excelente';
-        veredito.explicacao = `<b>Ótimo nascimento!</b> O <b>${statChaveNome}</b> veio alto (IV ${ivStatChave}/32 - ${pctStatChave}%), garantindo o dano máximo esperado para as habilidades desta espécie.`;
+        veredito.explicacao = `<b>Nascimento de alto desempenho.</b> O <b>${statChaveNome}</b> atingiu valor elevado (IV ${ivStatChave}/32 - ${pctStatChave}%), assegurando o rendimento de dano ideal para as habilidades desta espécie.`;
       } else if (pctStatChave >= 75 && baseEstrutural < 40) {
-        veredito.titulo = '🟡 Bom IV, mas Potência Baixa';
+        veredito.titulo = '🟡 Usável — IV Alto com Estrutura Limitada';
         veredito.classe = 'bom';
-        veredito.explicacao = `<b>Ótimo roll de ataque (${statChaveNome} a ${pctStatChave}%), mas travado pela estrutura (${potenciaTexto} / Q${qualidade}).</b> Bate bem pelo IV perfeito que escala nos níveis, mas o teto global é limitado.`;
+        veredito.explicacao = `<b>Desempenho viável pelo roll de ataque (${statChaveNome} a ${pctStatChave}%), porém restrito pela base estrutural (${potenciaTexto} / Q${qualidade}).</b> Apresenta boa entrega devido ao IV máximo, mas com teto global reduzido.`;
       } else if (pctStatChave >= 50) {
-        veredito.titulo = '🟡 Usável — Quebra Galho';
+        veredito.titulo = '🟡 Usável — Aceitável';
         veredito.classe = 'bom';
-        veredito.explicacao = `<b>Desempenho medianamente aceitável.</b> O <b>${statChaveNome} (${pctStatChave}%)</b> funciona para o dia a dia, mas não é um nascimento de elite.`;
+        veredito.explicacao = `<b>Desempenho intermediário.</b> O <b>${statChaveNome} (${pctStatChave}%)</b> atende aos requisitos básicos de combate, embora exista margem para espécimes superiores.`;
       } else if (pctStatChave < 45 && pctLadoOposto >= 65) {
-        veredito.titulo = '⚠️ O Jogo Trolou (Status Invertido)';
+        veredito.titulo = '⚠️ Status Invertido';
         veredito.classe = 'subotimo';
-        veredito.explicacao = `<b>Ataque no lado errado!</b> O kit principal de golpes exige <b>${statChaveNome}</b> (que veio fraco: ${pctStatChave}%), mas o jogo jogou o status alto para o lado oposto. O dano real será limitado.`;
+        veredito.explicacao = `<b>Divergência de atributos.</b> O conjunto de habilidades exige <b>${statChaveNome}</b> (atualmente em ${pctStatChave}%), mas o valor mais alto foi alocado no atributo oposto. O dano efetivo sofrerá limitações.`;
       } else {
-        veredito.titulo = '🔴 Ruim — Não Vale a Pena';
+        veredito.titulo = '🔴 Ruim — Não Recomendado';
         veredito.classe = 'ruim';
-        veredito.explicacao = `<b>Ataque muito baixo.</b> O <b>${statChaveNome} (${pctStatChave}%)</b> veio fraco, comprometendo o potencial de dano das habilidades.`;
+        veredito.explicacao = `<b>Atributo de ataque insuficiente.</b> O <b>${statChaveNome} (${pctStatChave}%)</b> veio abaixo do esperado, comprometendo o rendimento ofensivo das habilidades.`;
       }
 
       mostrarModalResumo({
