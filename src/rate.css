@@ -1,0 +1,90 @@
+/* ---- BOTÃO /RATE NA FICHA ---- */
+.pir-btn-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 4px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  background: linear-gradient(180deg, #ffe9a8 0 4px, #d09a17 4px 100%);
+  box-shadow: inset 0 0 0 2px #480e1e, 0 2px 5px rgba(0, 0, 0, 0.4);
+  color: #000;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  font: 800 12px/1.2 "Barlow", Tahoma, Verdana, sans-serif;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+  transition: filter 0.1s ease, transform 0.1s ease;
+  z-index: 10;
+}
+.pir-btn-rate:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.pir-btn-rate .pir-tag {
+  background: #33202b; color: #ffe9a8; padding: 2px 5px; border-radius: 4px; font-size: 10px;
+  box-shadow: inset 0 0 0 1px #480e1e;
+}
+
+/* ---- PAINEL FLUTUANTE /RATE ---- */
+.pir-painel {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 999999; width: min(680px, calc(100vw - 32px)); max-height: 90vh;
+  display: flex; flex-direction: column;
+  font: 500 12.5px/1.4 "Barlow", system-ui, sans-serif; color: #fff6ef;
+  background: linear-gradient(180deg, #914850 0 10px, #bd6951 10px calc(100% - 10px), #722c3f calc(100% - 10px));
+  border-radius: 9px; padding: 14px 16px;
+  box-shadow: inset 0 0 0 2px #480e1e, inset 0 3px 0 #f1d3b7, 0 15px 40px rgba(0, 0, 0, 0.8);
+}
+.pir-cab { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex: none; }
+.pir-titulo { flex: 1; min-width: 0; }
+.pir-titulo h3 { margin: 0; font-size: 15px; font-weight: 800; text-transform: uppercase; color: #ffe9a8; letter-spacing: 0.4px; }
+.pir-titulo small { display: block; color: #f5cdb9; font-size: 11.5px; font-weight: 600; }
+.pir-fechar {
+  flex: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font: 800 15px/1 system-ui;
+  color: #fff6ef; background: #33202b; border: 0; box-shadow: inset 0 0 0 2px #480e1e;
+}
+.pir-fechar:hover { background: #480e1e; }
+
+.pir-corpo { overflow-y: auto; padding-right: 4px; }
+.pir-secao-tit { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #f5cdb9; margin: 10px 0 6px 2px; font-weight: 700; }
+.pir-secao-tit:first-child { margin-top: 0; }
+
+.pir-caixa {
+  background: #33202b; border-radius: 6px; padding: 10px 12px;
+  box-shadow: inset 0 0 0 2px #480e1e; margin-bottom: 8px;
+}
+
+/* Box do Veredito com Borda Colorida */
+.pir-veredito-box {
+  display: flex; flex-direction: column; gap: 4px; border-left: 4px solid #6fd08a; padding-left: 10px;
+}
+.pir-veredito-box.excelente { border-left-color: #6fd08a; }
+.pir-veredito-box.bom { border-left-color: #ffe9a8; }
+.pir-veredito-box.subotimo { border-left-color: #f0a03c; }
+.pir-veredito-box.ruim { border-left-color: #ffc9bd; }
+
+.pir-veredito-top { display: flex; justify-content: space-between; align-items: center; }
+.pir-veredito-status { font-size: 14px; font-weight: 800; text-transform: uppercase; }
+.pir-veredito-status.excelente { color: #6fd08a; }
+.pir-veredito-status.bom { color: #ffe9a8; }
+.pir-veredito-status.subotimo { color: #f0a03c; }
+.pir-veredito-status.ruim { color: #ffc9bd; }
+
+.pir-veredito-desc { font-size: 12px; color: #fff6ef; line-height: 1.4; }
+
+/* Grid de Eficiência de Status */
+.pir-grid-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 12px; }
+.pir-stat-item { font-size: 11.5px; }
+.pir-stat-info { display: flex; justify-content: space-between; margin-bottom: 2px; font-weight: 600; }
+.pir-stat-bar { background: #22141c; height: 6px; border-radius: 3px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
+.pir-stat-fill { background: linear-gradient(90deg, #d09a17, #6fd08a); height: 100%; border-radius: 3px; }
+
+/* Tabela de Habilidades */
+.pir-tabela-wrap { overflow-x: auto; }
+.pir-tabela { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 12px; }
+.pir-tabela th {
+  background: #462b39; color: #c9a9b4; font-size: 10.5px; text-transform: uppercase;
+  text-align: left; padding: 6px 8px; border-bottom: 2px solid #480e1e;
+}
+.pir-tabela td { padding: 6px 8px; border-top: 1px solid #462b39; text-align: left; white-space: nowrap; }
+.pir-tabela tr:hover td { background: rgba(255, 255, 255, 0.03); }
+.pir-destaque-dano { font-weight: 800; color: #6fd08a; }

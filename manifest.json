@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "/rate for PokeIdle",
+  "version": "1.0.0",
+  "description": "Calcula a sinergia de status, IVs e golpes para dar a nota real do seu Pokémon no PokeIdle.",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://pokeidle.io/*"
+      ],
+      "css": [
+        "src/rate.css"
+      ],
+      "js": [
+        "src/rate.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}
