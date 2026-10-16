@@ -1,8 +1,4 @@
-# pokeidle-rate
-Extensão para Pokeidle.io com análise de status, IVs, eficiência de build e preview de dano (/rate).
-# 🔍 /rate for PokeIdle
-
-Uma extensão independente para **PokeIdle.io** que faz a análise de eficiência de status, IVs e entrega o **veredito mastigado** da build, além de um preview de dano das habilidades.
+Uma extensão independente para **PokeIdle.io** que faz a análise de eficiência de status, IVs e entrega o **veredito resumido** da build, além de um preview de dano das habilidades.
 
 ---
 
