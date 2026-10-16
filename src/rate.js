@@ -243,11 +243,43 @@
             </tbody>
           </table>
         </div>
+
+        <!-- SEÇÃO DE APOIO / PIX (RODAPÉ LIMPO SEM QR CODE) -->
+        <div class="pir-secao-tit">Apoie o criador do /rate</div>
+        <div class="pir-caixa" style="display: flex; flex-direction: column; gap: 6px; background: rgba(0,0,0,0.25);">
+          <div style="font-size: 11.5px; color: #f5cdb9; font-weight: 600;">
+            Curtiu a ferramenta? Contribua com qualquer valor via Pix para apoiar o criador! 💜
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="text" id="pir-input-pix" value="33cd56b1-998e-4926-aa64-a20c5af1d834" readonly style="background: #1a0f15; border: 1px solid #480e1e; color: #fff6ef; padding: 5px 8px; border-radius: 4px; font-size: 11px; width: 100%; font-family: monospace;" />
+            <button id="pir-btn-copiar-pix" type="button" style="background: #f59e0b; color: #15131a; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;">
+              Copiar Chave
+            </button>
+          </div>
+        </div>
+
       </div>
     `;
 
     document.body.appendChild(painel);
     document.querySelector('#pir-btn-fechar').onclick = fecharPainel;
+
+    // Ação do Botão Copiar Pix
+    const btnCopiarPix = document.getElementById('pir-btn-copiar-pix');
+    btnCopiarPix.onclick = () => {
+      const inputPix = document.getElementById('pir-input-pix');
+      inputPix.select();
+      inputPix.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(inputPix.value).then(() => {
+        const textoOriginal = btnCopiarPix.innerText;
+        btnCopiarPix.innerText = 'Copiado!';
+        btnCopiarPix.style.background = '#4ade80';
+        setTimeout(() => {
+          btnCopiarPix.innerText = textoOriginal;
+          btnCopiarPix.style.background = '#f59e0b';
+        }, 2000);
+      });
+    };
 
     let tipoAlvoAtual = '';
     const btnDropdown = document.getElementById('pir-dropdown-btn');
@@ -548,7 +580,6 @@
       let analiseOfensiva = '';
       let analiseDefensiva = '';
 
-      // ANÁLISE RIGOROSA E CRUZADA DE ATAQUE (Stat Principal + Speed)
       const principalFisico = pesoFisico >= pesoEspecial;
       const statChave = principalFisico ? 'ATK' : 'SP.ATK';
       const pctChave = principalFisico ? pctAtk : pctSpAtk;
@@ -567,7 +598,6 @@
         analiseOfensiva = `<span style="color: #ff6464; font-weight: 700;">⚠️ Dano Reduzido (${statChave} ${pctChave}%)</span> aliado a <span style="color: #ffc9bd; font-weight: 700;">⚠️ SPEED Baixa (${speedPct}%)</span>: Potencial ofensivo severamente comprometido em força e cadência.`;
       }
 
-      // ANÁLISE DEFENSIVA RIGOROSA E CORRIGIDA (CRÍTICO APENAS < 35%)
       const defForte = defPct >= 75;
       const spDefForte = spDefPct >= 75;
       const defCritica = defPct < 35;
