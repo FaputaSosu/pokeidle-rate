@@ -73,7 +73,7 @@
           <div class="pir-veredito-box ${dados.veredito.classe}">
             <div class="pir-veredito-top">
               <span class="pir-veredito-status ${dados.veredito.classe}">${dados.veredito.titulo}</span>
-              <span style="font-weight: 700; color: #ffe9a8;">Nota Real: ${dados.veredito.notaReal}%</span>
+              <span style="font-weight: 700; color: #ffe9a8;">Nota Geral: ${dados.veredito.notaReal}%</span>
             </div>
             <div class="pir-veredito-desc" style="margin-top:6px;">${dados.veredito.explicacao}</div>
           </div>
