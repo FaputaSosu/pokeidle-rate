@@ -39,11 +39,10 @@
     return m1 * m2;
   }
 
-  // Analisa o perfil ofensivo combinando os tipos da espécie (tipo1 e tipo2) contra todos os defensores do jogo
   function analisarPerfilOfensivo(tiposEspecie) {
-    const eficientes = []; // Vantagem (> 1x)
-    const desfavoraveis = []; // Desvantagem (< 1x)
-    const neutros = []; // Neutros (= 1x)
+    const eficientes = [];
+    const desfavoraveis = [];
+    const neutros = [];
 
     TODOS_TIPOS.forEach(tipoAlvo => {
       let maxMult = 0;
@@ -60,7 +59,6 @@
     return { eficientes, desfavoraveis, neutros };
   }
 
-  // Analisa o perfil defensivo (o que resiste ou anula dano contra esta espécie)
   function analisarPerfilDefensivo(tipo1, tipo2) {
     const resistencias = [];
 
@@ -124,9 +122,14 @@
       </div>
     `).join('');
 
+    // Aplicando a classe oficial .tipo \${item.tipo} para estilizar igualzinho às habilidades
     const renderPilulas = (lista) => {
       if (!lista.length) return '<span style="color: #777; font-size: 11px;">Nenhum</span>';
-      return lista.map(item => `<span class="tipo ${item.tipo}" style="font-size: 10px; padding: 1px 5px; margin: 2px; display: inline-block; font-weight: 600;">${item.tipo} (${item.mult}x)</span>`).join('');
+      return lista.map(item => `
+        <span class="tipo ${item.tipo}" style="font-size: 10px; padding: 2px 6px; margin: 2px; display: inline-block; font-weight: 600; border-radius: 4px;">
+          ${item.tipo} (${item.mult}x)
+        </span>
+      `).join('');
     };
 
     const ofensivo = dados.perfilOfensivo;
@@ -166,14 +169,16 @@
           </div>
           <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; font-size: 11px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px;">
             <div>
-              <div style="font-weight: 700; color: #6fd08a; margin-bottom: 2px;">⚔️ Ataques (Vantagem / Super Efetivo)</div>
-              <div style="margin-bottom: 6px; line-height: 1.4;">${renderPilulas(ofensivo.eficientes)}</div>
-              
-              <div style="font-weight: 700; color: #bbb; margin-bottom: 2px;">🛡️ Defesas (O que resiste a esta espécie)</div>
-              <div style="margin-bottom: 6px; line-height: 1.4;">${renderPilulas(defensivo)}</div>
+              <div style="font-weight: 700; color: #6fd08a; margin-bottom: 3px;">Ataques (O que esta espécie tem vantagem)
 
-              <div style="font-weight: 700; color: #ffe9a8; margin-bottom: 2px;">⚖️ Neutros (Dano padrão)</div>
-              <div style="line-height: 1.4;">${renderPilulas(ofensivo.neutros)}</div>
+</div>
+              <div style="margin-bottom: 6px; line-height: 1.5;">${renderPilulas(ofensivo.eficientes)}</div>
+              
+              <div style="font-weight: 700; color: #ffc9bd; margin-bottom: 3px;">Defesas (O que resistem a esta espécie)</div>
+              <div style="margin-bottom: 6px; line-height: 1.5;">${renderPilulas(defensivo)}</div>
+
+              <div style="font-weight: 700; color: #ffe9a8; margin-bottom: 3px;">Neutros (Sem vantagem ou desvantagem)</div>
+              <div style="line-height: 1.5;">${renderPilulas(ofensivo.neutros)}</div>
             </div>
           </div>
         </div>
