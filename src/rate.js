@@ -567,18 +567,24 @@
         analiseOfensiva = `<span style="color: #ff6464; font-weight: 700;">⚠️ Dano Reduzido (${statChave} ${pctChave}%)</span> aliado a <span style="color: #ffc9bd; font-weight: 700;">⚠️ SPEED Baixa (${speedPct}%)</span>: Potencial ofensivo severamente comprometido em força e cadência.`;
       }
 
-      // ANÁLISE CRUZADA DE DEFESA (HP, DEF e SP.DEF)
+      // ANÁLISE DEFENSIVA RIGOROSA E CORRIGIDA (CRÍTICO APENAS < 35%)
       const defForte = defPct >= 75;
       const spDefForte = spDefPct >= 75;
+      const defCritica = defPct < 35;
+      const spDefCritica = spDefPct < 35;
 
-      if (defForte && spDefForte) {
-        analiseDefensiva = `Blindagem completa (<b>HP ${hpPct}% / DEF ${defPct}% / SP.DEF ${spDefPct}%</b>). Excelente sustentabilidade contra qualquer tipo de dano.`;
-      } else if (defForte && !spDefForte) {
-        analiseDefensiva = `Boa defesa física (<b>DEF ${defPct}%</b>), mas com <span style="color: #ffc9bd; font-weight: 700;">⚠️ SP.DEF Crítica (${spDefPct}%)</span>: alta vulnerabilidade a ataques especiais.`;
-      } else if (!defForte && spDefForte) {
-        analiseDefensiva = `Boa defesa especial (<b>SP.DEF ${spDefPct}%</b>), mas com <span style="color: #ffc9bd; font-weight: 700;">⚠️ DEF Crítica (${defPct}%)</span>: alta vulnerabilidade a ataques físicos.`;
-      } else if (defPct < 35 && spDefPct < 35) {
+      if (defCritica && spDefCritica) {
         analiseDefensiva = `<span style="color: #ff6464; font-weight: 700;">⚠️ Defesas Críticas (DEF ${defPct}% / SP.DEF ${spDefPct}%):</span> Papel puro! Dano massivo sofrido de qualquer fonte.`;
+      } else if (defForte && !spDefCritica && !spDefForte) {
+        analiseDefensiva = `Boa defesa física (<b>DEF ${defPct}%</b>), com <span style="color: #ffe9a8;">SP.DEF mediana (${spDefPct}%)</span>. Absorção equilibrada.`;
+      } else if (!defCritica && !defForte && spDefForte) {
+        analiseDefensiva = `Boa defesa especial (<b>SP.DEF ${spDefPct}%</b>), com <span style="color: #ffe9a8;">DEF mediana (${defPct}%)</span>. Absorção equilibrada.`;
+      } else if (defCritica) {
+        analiseDefensiva = `<span style="color: #ffc9bd; font-weight: 700;">⚠️ DEF Crítica (${defPct}%):</span> Alta vulnerabilidade a golpes físicos (HP ${hpPct}% / SP.DEF ${spDefPct}%).`;
+      } else if (spDefCritica) {
+        analiseDefensiva = `<span style="color: #ffc9bd; font-weight: 700;">⚠️ SP.DEF Crítica (${spDefPct}%):</span> Alta vulnerabilidade a golpes especiais (HP ${hpPct}% / DEF ${defPct}%).`;
+      } else if (defForte && spDefForte) {
+        analiseDefensiva = `Blindagem completa (<b>HP ${hpPct}% / DEF ${defPct}% / SP.DEF ${spDefPct}%</b>). Excelente sustentabilidade contra qualquer tipo de dano.`;
       } else {
         analiseDefensiva = `Sustentabilidade mediana (<b>HP ${hpPct}% / DEF ${defPct}% / SP.DEF ${spDefPct}%</b>). Absorção de dano moderada.`;
       }
