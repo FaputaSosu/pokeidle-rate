@@ -73,7 +73,7 @@
           <div class="pir-veredito-box ${dados.veredito.classe}">
             <div class="pir-veredito-top">
               <span class="pir-veredito-status ${dados.veredito.classe}">${dados.veredito.titulo}</span>
-              <span style="font-weight: 700; color: #ffe9a8;">Média Geral: ${dados.veredito.mediaGeral}%</span>
+              <span style="font-weight: 700; color: #ffe9a8;">Nota Real: ${dados.veredito.notaReal}%</span>
             </div>
             <div class="pir-veredito-desc" style="margin-top:6px;">${dados.veredito.explicacao}</div>
           </div>
@@ -164,7 +164,8 @@
       }
 
       const potenciaEl = document.querySelector('.fi-placa.pk-selo-pot b');
-      const potencia = potenciaEl ? potenciaEl.innerText.trim() : 'P1';
+      const potenciaTexto = potenciaEl ? potenciaEl.innerText.trim() : 'P1';
+      const numPotencia = parseInt(potenciaTexto.replace(/\D/g, '') || '1', 10);
 
       const qualidadeEl = document.querySelector('.fi-placa.pk-selo-q b');
       const qualidadeTexto = qualidadeEl ? qualidadeEl.innerText.trim().replace(',', '.') : '1.000';
@@ -218,8 +219,7 @@
         somaPcts += pct;
       }
       
-      // Média geral real de todos os 6 stats combinados
-      const mediaGeral = Math.round(somaPcts / 6);
+      const mediaIvs = somaPcts / 6;
 
       const tipos = [especieAlvo.type1, especieAlvo.type2].filter(Boolean);
 
@@ -266,17 +266,29 @@
       const ivStatChave = ehFocoEspecial ? ivs.spAtk : ivs.atk;
       const pctLadoOposto = ehFocoEspecial ? eficienciaStats.atk.pct : eficienciaStats.spAtk.pct;
 
+      // Ponderação estrutural baseada na fórmula oficial (Qualidade + Potência + IV do Ataque Util)
+      const qualidadePct = Math.min(100, Math.max(0, ((qualidade - 1.0) / 0.8) * 100));
+      const potenciaPct = (numPotencia / 5) * 100;
+      const baseEstrutural = (qualidadePct * 0.6) + (potenciaPct * 0.4);
+
+      // Nota real cruzando o stat útil com a carcaça estrutural e a média geral dos IVs
+      const notaReal = Math.round((pctStatChave * 0.5) + (baseEstrutural * 0.3) + (mediaIvs * 0.2));
+
       let veredito = {
         titulo: 'Bom',
         classe: 'bom',
-        mediaGeral: mediaGeral,
+        notaReal: notaReal,
         explicacao: ''
       };
 
-      if (pctStatChave >= 75) {
+      if (pctStatChave >= 85 && baseEstrutural >= 60) {
         veredito.titulo = '🟢 Bom — Vale a Pena Investir';
         veredito.classe = 'excelente';
         veredito.explicacao = `<b>Ótimo nascimento!</b> O <b>${statChaveNome}</b> veio alto (IV ${ivStatChave}/32 - ${pctStatChave}%), garantindo o dano máximo esperado para as habilidades desta espécie.`;
+      } else if (pctStatChave >= 75 && baseEstrutural < 40) {
+        veredito.titulo = '🟡 Bom IV, mas Potência Baixa';
+        veredito.classe = 'bom';
+        veredito.explicacao = `<b>Ótimo roll de ataque (${statChaveNome} a ${pctStatChave}%), mas travado pela estrutura (${potenciaTexto} / Q${qualidade}).</b> Bate bem pelo IV perfeito que escala nos níveis, mas o teto global é limitado.`;
       } else if (pctStatChave >= 50) {
         veredito.titulo = '🟡 Usável — Quebra Galho';
         veredito.classe = 'bom';
@@ -295,7 +307,7 @@
         nome: nomePokemon,
         especieNome: especieAlvo.name,
         nivel: nivel,
-        potencia: potencia,
+        potencia: potenciaTexto,
         qualidade: qualidade.toFixed(3),
         isShiny: isShiny,
         eficienciaStats: eficienciaStats,
