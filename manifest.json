@@ -1,8 +1,23 @@
 {
   "manifest_version": 3,
   "name": "/rate for PokeIdle",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Calcula a sinergia de status, IVs e golpes para dar a nota real do seu Pokémon no PokeIdle.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "pokeidle-rate@faputa",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -16,6 +31,17 @@
       ],
       "run_at": "document_start",
       "world": "MAIN"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/rate.css",
+        "icon.png"
+      ],
+      "matches": [
+        "https://pokeidle.io/*"
+      ]
     }
   ]
 }
